@@ -69,7 +69,7 @@ export function usePaymentConfirm(
       );
     }
   // clearCart만 의존 — paymentKey 등은 initRef로 마운트 시 1회만 실행
-  }, [clearCart]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [clearCart]);
 
   return { status, orderDetail };
 }

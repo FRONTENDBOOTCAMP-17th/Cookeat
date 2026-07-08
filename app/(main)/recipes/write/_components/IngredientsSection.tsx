@@ -22,7 +22,7 @@ export default function IngredientsSection({
   onChange,
 }: IngredientsSectionProps) {
   return (
-    <Card>
+    <Card className="overflow-visible">
       <CardHeader className="border-b flex items-center justify-between">
         <CardTitle>재료</CardTitle>
         <Button type="button" size="sm" onClick={onAdd} className="gap-1">

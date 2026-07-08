@@ -1,10 +1,9 @@
-import { supabaseAdmin } from '@/lib/supabaseAdmin';
-
 export type CategoryName =
   | '채소'
   | '과일·견과·쌀'
   | '수산·해산물·건어물'
   | '정육·가공육·달걀'
+  | '국·반찬'
   | '면·양념·오일'
   | '유제품'
   | '베이커리';

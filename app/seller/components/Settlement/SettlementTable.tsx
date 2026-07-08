@@ -1,6 +1,7 @@
 'use client';
 
 import { formatDate, getPageNumbers } from '@/lib/utils';
+import { formatWon } from '@/lib/format';
 import Pagination from '@/components/ui/Pagination';
 import EmptyRows from '@/components/ui/EmptyRows';
 import StatusBadge from '../StatusBadge';
@@ -85,16 +86,16 @@ export default function SettlementTable({
                       {formatDate(s.periodStart)} ~ {formatDate(s.periodEnd)})
                     </TableCell>
                     <TableCell className="text-center text-sm text-gray-700 whitespace-nowrap">
-                      {s.totalAmount.toLocaleString()}원
+                      {formatWon(s.totalAmount)}
                     </TableCell>
                     <TableCell className="text-center text-sm text-red-500 whitespace-nowrap">
-                      {s.cancelledAmount > 0 ? `-${s.cancelledAmount.toLocaleString()}원` : '-'}
+                      {s.cancelledAmount > 0 ? `-${formatWon(s.cancelledAmount)}` : '-'}
                     </TableCell>
                     <TableCell className="text-center text-sm text-red-400 whitespace-nowrap">
-                      -{s.fee.toLocaleString()}원
+                      -{formatWon(s.fee)}
                     </TableCell>
                     <TableCell className="text-center text-sm font-medium text-gray-800 whitespace-nowrap">
-                      {s.amount.toLocaleString()}원
+                      {formatWon(s.amount)}
                     </TableCell>
                     <TableCell className="text-center whitespace-nowrap">
                       <StatusBadge status={s.status} />

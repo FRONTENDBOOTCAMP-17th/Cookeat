@@ -45,14 +45,7 @@ export async function getSellerOrdersForExport(
     .from('orders')
     .select('order_id')
     .in('order_id', sellerOrderIds)
-    .in('status', ['결제완료', '배송준비', '배송중', '배송완료', '취소', '환불']);
-
-  if (status && status !== '전체') {
-    orderQuery =
-      status === '취소환불'
-        ? orderQuery.in('status', ['취소', '환불'])
-        : orderQuery.eq('status', status);
-  }
+    .neq('status', '결제전');
 
   if (keyword) {
     const orConditions = [
@@ -79,9 +72,18 @@ export async function getSellerOrdersForExport(
 
   let itemQuery = supabaseAdmin
     .from('order_items')
-    .select('item_id, order_id, quantity, unit_price, products(name)', { count: 'exact' })
+    .select('item_id, order_id, quantity, unit_price, shipping_status, products(name)', {
+      count: 'exact',
+    })
     .eq('seller_id', sellerId)
     .in('order_id', matchedOrderIds);
+
+  if (status && status !== '전체') {
+    itemQuery =
+      status === '취소환불'
+        ? itemQuery.in('shipping_status', ['취소', '환불'])
+        : itemQuery.eq('shipping_status', status);
+  }
 
   if (options.itemIds) {
     const targetItemIds = options.itemIds.map(Number).filter((id) => sellerItemIdSet.has(id));
@@ -133,7 +135,7 @@ export async function getSellerOrdersForExport(
       pointAmount: order?.used_point ?? 0,
       finalAmount: order?.final_amount ?? 0,
       paymentMethod: order?.payment_method,
-      status: order?.status,
+      status: item.shipping_status,
     };
   });
 

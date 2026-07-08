@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
+import Image from 'next/image';
 import { Image as ImageIcon, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,10 +77,12 @@ export default function StepItem({
 
         {step.imagePreview ? (
           <div className="relative w-full max-w-xs aspect-video">
-            <img
+            <Image
               src={step.imagePreview}
               alt={`STEP ${order} 사진`}
-              className="w-full h-full object-cover rounded-lg border border-border"
+              fill
+              unoptimized={step.imagePreview.startsWith('blob:')}
+              className="object-cover rounded-lg border border-border"
             />
             <button
               type="button"

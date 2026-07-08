@@ -10,6 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Pencil, Trash2 } from 'lucide-react';
+import { formatWon } from '@/lib/format';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -46,8 +47,8 @@ export default function ShippingTemplateTable({
   const feeDescription = (shipping: ShippingTemplateTableProps['shippings'][0]) => {
     if (shipping.feeType === '무료') return '무료';
     if (shipping.feeType === '조건부 무료')
-      return `${shipping.fee.toLocaleString()}원 (${(shipping.freeThreshold ?? 0).toLocaleString()}원 이상 무료)`;
-    return `${shipping.fee.toLocaleString()}원`;
+      return `${formatWon(shipping.fee)} (${formatWon(shipping.freeThreshold ?? 0)} 이상 무료)`;
+    return formatWon(shipping.fee);
   };
 
   return (
@@ -95,7 +96,7 @@ export default function ShippingTemplateTable({
                         {feeDescription(shipping)}
                       </TableCell>
                       <TableCell className="text-center text-gray-700">
-                        {shipping.returnFee.toLocaleString()}원
+                        {formatWon(shipping.returnFee)}
                       </TableCell>
                       <TableCell className="text-gray-500 text-sm max-w-48 truncate">
                         {shipping.originAddress || '—'}

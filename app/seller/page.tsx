@@ -30,7 +30,7 @@ export default function SellerPage() {
     fetchDashboard();
   }, []);
 
-  if (isLoading || !dashboard) {
+  if (isLoading) {
     return (
       <div className="bg-background p-8 max-tablet:p-5 max-mobile:p-4">
         <div className="mb-8">
@@ -40,6 +40,22 @@ export default function SellerPage() {
           </p>
         </div>
         <p className="text-sm text-light-gray">불러오는 중...</p>
+      </div>
+    );
+  }
+
+  if (!dashboard) {
+    return (
+      <div className="bg-background p-8 max-tablet:p-5 max-mobile:p-4">
+        <div className="mb-8">
+          <h1 className="text-h2 font-bold text-dark-text max-mobile:text-h3">판매 현황</h1>
+          <p className="text-sm text-light-gray mt-1">
+            오늘의 판매 데이터와 주요 지표를 확인하세요
+          </p>
+        </div>
+        <p className="text-sm text-red-500">
+          대시보드 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
+        </p>
       </div>
     );
   }

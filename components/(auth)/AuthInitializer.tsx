@@ -17,7 +17,7 @@ export default function AuthInitializer() {
   // localStorage / sessionStorage에서 세션 복원
   useEffect(() => {
     rehydrate()
-  }, [])
+  }, [rehydrate])
 
   // Supabase가 토큰을 자동 갱신하면 스토어도 업데이트
   useEffect(() => {
@@ -33,13 +33,15 @@ export default function AuthInitializer() {
       if (event === 'SIGNED_OUT') clearAuth()
     })
     return () => subscription.unsubscribe()
-  }, [])
+  }, [setAuth, clearAuth])
 
   // 복원 완료 후 저장된 토큰을 Supabase 클라이언트에 주입
+  // hydrated가 true로 바뀌는 시점에만 1회 실행되어야 하므로 accessToken/refreshToken은 의도적으로 deps에서 제외
   useEffect(() => {
     if (!hydrated || !accessToken || !refreshToken) return
     supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
       .then(({ error }) => { if (error) clearAuth() })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated])
 
   return null

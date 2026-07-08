@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
-import { getPageNumbers } from '@/lib/utils';
+import { getPageNumbers, getTotalPages } from '@/lib/utils';
 import type { Review, ReviewSummary, ReviewTabFilter } from '@/types/seller/review';
 import ReviewSummaryCards from '@/app/seller/components/ReviewList/ReviewSummaryCards';
 import ReviewFilterTabs from '@/app/seller/components/ReviewList/ReviewFilterTabs';
@@ -35,7 +35,7 @@ export default function ReviewsPage() {
   const [sortOrder, setSortOrder] = useState<'rating_desc' | 'rating_asc' | undefined>(undefined);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const totalPages = Math.ceil(total / LIMIT);
+  const totalPages = getTotalPages(total, LIMIT);
 
   useEffect(() => {
     let cancelled = false;

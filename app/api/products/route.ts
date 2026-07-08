@@ -116,7 +116,9 @@ export async function GET(req: NextRequest) {
     default:
       query = query.order('sales_count', { ascending: false });
   }
-  query = query.range((page - 1) * limit, page * limit - 1);
+  // 정렬 기준 값이 동일한 행이 많으면(예: sales_count=0) DB가 페이지마다
+  // 다른 순서로 반환할 수 있어 경계 상품이 중복/누락될 수 있음 → product_id로 타이브레이크
+  query = query.order('product_id', { ascending: true }).range((page - 1) * limit, page * limit - 1);
 
   const { data: products, error, count } = await query;
   if (error) {

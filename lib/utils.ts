@@ -15,6 +15,11 @@ export function escapeOrValue(value: string): string {
   return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
 }
 
+/** 총 페이지 수 계산 */
+export function getTotalPages(total: number, pageSize: number): number {
+  return Math.ceil(total / pageSize);
+}
+
 /**페이지 넘버처리 */
 export function getPageNumbers(currentPage: number, totalPages: number) {
   if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);

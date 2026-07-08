@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useAvatarUpload } from '@/hooks/user/useAvatarUpload';
 
 interface Props {
@@ -15,7 +16,17 @@ export default function ProfileAvatar({ profileImage, accessToken, onUploaded }:
   return (
     <div className="mb-6 flex flex-col items-center gap-3">
       {src
-        ? <img src={src} alt="프로필" className="size-20 rounded-full object-cover" />
+        ? (
+          <div className="relative size-20 rounded-full overflow-hidden">
+            <Image
+              src={src}
+              alt="프로필"
+              fill
+              unoptimized={src.startsWith('blob:')}
+              className="object-cover"
+            />
+          </div>
+        )
         : <div className="size-20 rounded-full bg-primary" />
       }
       <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleChange} />

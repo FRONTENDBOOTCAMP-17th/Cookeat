@@ -4,7 +4,7 @@ import { ChevronRight } from 'lucide-react';
 import ProductImageGallery from './_components/ProductImageGallery';
 import ProductTabs from './_components/ProductTabs';
 import ProductPurchasePanel from '@/components/product/ProductPurchasePanel';
-import { getProductDetail } from '@/lib/products';
+import { getProductDetail, getRelatedRecipesByProduct } from '@/lib/products';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -16,7 +16,10 @@ export default async function ProductDetailPage({ params }: Props) {
 
   if (!Number.isInteger(productId) || productId <= 0) notFound();
 
-  const product = await getProductDetail(productId);
+  const [product, relatedRecipes] = await Promise.all([
+    getProductDetail(productId),
+    getRelatedRecipesByProduct(productId),
+  ]);
   if (!product) notFound();
 
   const details = [
@@ -63,13 +66,14 @@ export default async function ProductDetailPage({ params }: Props) {
         descriptionTitle={`${product.seller || '판매자'}에서 직접 보내는 ${product.name}`}
         description={
           product.description ||
-          `신선한 ${product.name}을 산지에서 직접 보내드립니다.\n\n최상의 신선도를 유지하며 출고합니다.`
+          `<p>신선한 ${product.name}을 산지에서 직접 보내드립니다.</p><p>최상의 신선도를 유지하며 출고합니다.</p>`
         }
         features={[
           { title: '소규모 재배', desc: '정성껏 키운 신선한 재료입니다.' },
           { title: '산지직송', desc: '중간 유통 없이 산지에서 바로 보내드립니다.' },
           { title: '친환경 배송', desc: '친환경 포장재를 사용하여 배송합니다.' },
         ]}
+        relatedRecipes={relatedRecipes}
         productName={product.name}
       />
     </div>

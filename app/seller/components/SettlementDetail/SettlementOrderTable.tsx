@@ -14,6 +14,7 @@ import StatusBadge from '../StatusBadge';
 import { usePagination } from '@/hooks/usePagination';
 import Pagination from '@/components/ui/Pagination';
 import { formatDateTime } from '@/lib/utils';
+import { formatWon } from '@/lib/format';
 
 function OrderSection({
   title,
@@ -74,10 +75,10 @@ function OrderSection({
                   {formatDateTime(order.orderDate)}
                 </TableCell>
                 <TableCell className="text-sm text-dark-text">
-                  {order.salesAmount.toLocaleString()}원
+                  {formatWon(order.salesAmount)}
                 </TableCell>
                 <TableCell className="text-sm text-red">
-                  {order.commission > 0 ? `-${order.commission.toLocaleString()}원` : '-'}
+                  {order.commission > 0 ? `-${formatWon(order.commission)}` : '-'}
                 </TableCell>
                 <TableCell>
                   <StatusBadge status={order.status} />
@@ -87,7 +88,7 @@ function OrderSection({
                     isCancelledSection ? 'text-light-gray' : 'text-dark-text'
                   }`}
                 >
-                  {order.settlementAmount.toLocaleString()}원
+                  {formatWon(order.settlementAmount)}
                 </TableCell>
               </TableRow>
             ))}

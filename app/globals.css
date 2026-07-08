@@ -199,3 +199,22 @@ body {
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  .seller-page-shell {
+    min-width: 0;
+  }
+
+  .seller-page-shell * {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    hyphens: auto;
+  }
+
+  .seller-page-shell img,
+  .seller-page-shell svg {
+    max-width: 100%;
+    flex-shrink: 0;
+  }
+}

@@ -15,7 +15,7 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
         <SidebarProvider style={{ minHeight: '6.25rem' }}>
           <SellerSidebar />
           <div className="flex flex-1 flex-col min-w-0">
-            <main className="flex flex-1 flex-col min-w-0">{children}</main>
+            <main className="seller-page-shell flex flex-1 flex-col min-w-0">{children}</main>
           </div>
         </SidebarProvider>
       </div>

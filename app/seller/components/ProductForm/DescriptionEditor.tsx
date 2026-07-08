@@ -102,6 +102,8 @@ function ResizableImageView({ node, updateAttributes, selected }: NodeViewProps)
           ))}
         </div>
       )}
+      {/* Tiptap 노드뷰: 폭이 %로 동적 조절되고 blob: 미리보기도 올 수 있어 next/image로 옮기지 않음 */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={node.attrs.src}
         alt={node.attrs.alt || ''}

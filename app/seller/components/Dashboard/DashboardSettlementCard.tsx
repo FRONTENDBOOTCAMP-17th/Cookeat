@@ -1,5 +1,6 @@
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
+import { formatWon } from '@/lib/format';
 import type { DashboardSettlementCardProps } from '@/types/seller/dashboard';
 
 export default function DashboardSettlementCard({ settlement }: DashboardSettlementCardProps) {
@@ -22,7 +23,7 @@ export default function DashboardSettlementCard({ settlement }: DashboardSettlem
         <div>
           <p className="text-xs text-light-gray mb-2">다음 정산 예정 금액</p>
           <p className="text-2xl font-bold text-dark-text leading-none">
-            {scheduledTotal.toLocaleString()}원
+            {formatWon(scheduledTotal)}
           </p>
         </div>
 
@@ -30,7 +31,7 @@ export default function DashboardSettlementCard({ settlement }: DashboardSettlem
           <div>
             <p className="text-xs text-light-gray mb-1">정산대기 금액</p>
             <p className="text-base font-semibold text-amber-500 leading-none">
-              {pendingTotal.toLocaleString()}원
+              {formatWon(pendingTotal)}
             </p>
             <p className="text-[11px] text-light-gray mt-1">
               구매확정 및 반품/교환 기간 종료 후 정산예정으로 전환됩니다

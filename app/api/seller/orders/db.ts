@@ -111,15 +111,6 @@ export async function getSellerOrderCounts(
 ) {
   const { startDate, endDate } = options ?? {};
 
-  const { data: sellerItemRows, error: sellerItemsError } = await supabaseAdmin
-    .from('order_items')
-    .select('item_id, order_id')
-    .eq('seller_id', sellerId);
-
-  if (sellerItemsError) throw sellerItemsError;
-
-  const sellerOrderIds = [...new Set((sellerItemRows ?? []).map((r) => r.order_id))];
-
   const emptyCounts = {
     전체: 0,
     결제완료: 0,
@@ -129,26 +120,25 @@ export async function getSellerOrderCounts(
     구매확정: 0,
   };
 
-  if (sellerOrderIds.length === 0) {
-    return emptyCounts;
-  }
+  // 주문 전체가 아니라 "내 상품"의 상태를 기준으로 집계한다 (멀티셀러 주문에서 다른 셀러 상품 상태에 영향받지 않도록)
+  let itemQuery = supabaseAdmin
+    .from('order_items')
+    .select('shipping_status, orders!inner(status, created_at)')
+    .eq('seller_id', sellerId)
+    .not('shipping_status', 'is', null)
+    .neq('orders.status', '결제전');
 
-  let orderQuery = supabaseAdmin
-    .from('orders')
-    .select('order_id, status')
-    .in('order_id', sellerOrderIds);
+  if (startDate) itemQuery = itemQuery.gte('orders.created_at', `${startDate}T00:00:00`);
+  if (endDate) itemQuery = itemQuery.lte('orders.created_at', `${endDate}T23:59:59`);
 
-  if (startDate) orderQuery = orderQuery.gte('created_at', `${startDate}T00:00:00`);
-  if (endDate) orderQuery = orderQuery.lte('created_at', `${endDate}T23:59:59`);
-
-  const { data: orders, error: ordersError } = await orderQuery;
-  if (ordersError) throw ordersError;
+  const { data: items, error: itemsError } = await itemQuery;
+  if (itemsError) throw itemsError;
 
   const counts = { ...emptyCounts };
-  counts.전체 = (orders ?? []).length;
+  counts.전체 = (items ?? []).length;
 
-  for (const order of orders ?? []) {
-    const status = order.status as keyof typeof counts;
+  for (const item of items ?? []) {
+    const status = item.shipping_status as keyof typeof counts;
     if (status in counts) {
       counts[status] += 1;
     }

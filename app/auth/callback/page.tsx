@@ -9,6 +9,7 @@ import type { Session } from '@supabase/supabase-js';
 export default function AuthCallbackPage() {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
+  const patchUser = useAuthStore((s) => s.patchUser);
 
   useEffect(() => {
     let settled = false;
@@ -53,7 +54,8 @@ export default function AuthCallbackPage() {
       const res = await fetch('/api/auth/profile', {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      const { complete } = await res.json();
+      const { complete, role, dbUserId } = await res.json();
+      patchUser({ role: role ?? 'user', dbUserId: dbUserId ?? 0 });
       if (complete) alert('로그인되었습니다.');
       router.replace(!complete ? '/auth/profile' : '/');
     }
@@ -78,7 +80,7 @@ export default function AuthCallbackPage() {
       sub?.unsubscribe();
       if (timer) clearTimeout(timer);
     };
-  }, [router, setAuth]);
+  }, [router, setAuth, patchUser]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">

@@ -11,7 +11,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     if (hydrated && accessToken) router.replace('/')
-  }, [hydrated, accessToken])
+  }, [hydrated, accessToken, router])
 
   if (!hydrated) return null
   if (accessToken) return null

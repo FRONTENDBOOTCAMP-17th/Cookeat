@@ -2,7 +2,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { COUPON_DISCOUNT_TYPE_LABEL, PaymentInfo } from '@/types/seller/order';
-import { Receipt, Truck, Ticket, Coins, Percent } from 'lucide-react'; // 👈 Percent 아이콘 추가
+import { Receipt, Truck, Ticket, Coins, Percent } from 'lucide-react';
+import { formatWon } from '@/lib/format';
 
 interface OrderPaymentSectionProps {
   payment: PaymentInfo;
@@ -21,7 +22,7 @@ export default function OrderPaymentSection({ payment }: OrderPaymentSectionProp
         <dl className="flex flex-col gap-3">
           <div className="flex justify-between items-center">
             <dt className="text-sm text-gray-500">상품 금액</dt>
-            <dd className="text-sm text-gray-800">{payment.totalPrice.toLocaleString()}원</dd>
+            <dd className="text-sm text-gray-800">{formatWon(payment.totalPrice)}</dd>
           </div>
 
           <div className="flex justify-between items-center">
@@ -33,7 +34,7 @@ export default function OrderPaymentSection({ payment }: OrderPaymentSectionProp
               {payment.shippingFee === 0 ? (
                 <span className="text-blue-600 font-medium">무료배송</span>
               ) : (
-                `+ ${payment.shippingFee.toLocaleString()}원`
+                `+ ${formatWon(payment.shippingFee)}`
               )}
             </dd>
           </div>
@@ -44,9 +45,7 @@ export default function OrderPaymentSection({ payment }: OrderPaymentSectionProp
                 <Percent className="w-3.5 h-3.5 text-red-400" />
                 상품 할인
               </dt>
-              <dd className="text-sm text-red-500">
-                - {payment.productDiscount.toLocaleString()}원
-              </dd>
+              <dd className="text-sm text-red-500">- {formatWon(payment.productDiscount)}</dd>
             </div>
           )}
 
@@ -70,9 +69,7 @@ export default function OrderPaymentSection({ payment }: OrderPaymentSectionProp
                   </span>
                 )}
               </dt>
-              <dd className="text-sm text-red-500">
-                - {payment.couponDiscount.toLocaleString()}원
-              </dd>
+              <dd className="text-sm text-red-500">- {formatWon(payment.couponDiscount)}</dd>
             </div>
           )}
 
@@ -82,7 +79,7 @@ export default function OrderPaymentSection({ payment }: OrderPaymentSectionProp
                 <Coins className="w-3.5 h-3.5" />
                 포인트 사용
               </dt>
-              <dd className="text-sm text-red-500">- {payment.pointAmount.toLocaleString()}원</dd>
+              <dd className="text-sm text-red-500">- {formatWon(payment.pointAmount)}</dd>
             </div>
           )}
         </dl>
@@ -91,9 +88,7 @@ export default function OrderPaymentSection({ payment }: OrderPaymentSectionProp
 
         <div className="flex justify-between items-center">
           <span className="text-base font-semibold text-gray-800">최종 결제 금액</span>
-          <span className="text-xl font-bold text-primary">
-            {payment.finalAmount.toLocaleString()}원
-          </span>
+          <span className="text-xl font-bold text-primary">{formatWon(payment.finalAmount)}</span>
         </div>
       </CardContent>
     </Card>

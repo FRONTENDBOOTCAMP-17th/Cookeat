@@ -250,7 +250,11 @@ export async function updateShippingStatus(sellerId: number, itemId: number, new
 
   if (updateError) throw updateError;
 
-  await logOrderItemStatusHistory(itemId, newStatus);
+  try {
+    await logOrderItemStatusHistory(itemId, newStatus);
+  } catch (err) {
+    console.error('order_item_status_history insert 실패', { itemId, newStatus, err });
+  }
 
   if (newStatus === '배송완료') {
     const { error: deliveredAtError } = await supabaseAdmin
@@ -264,7 +268,7 @@ export async function updateShippingStatus(sellerId: number, itemId: number, new
 
   await syncOrderStatus(orderId);
 
-  return { status: newStatus };
+  return { status: newStatus, orderId };
 }
 
 export async function updateShippingTracking(
@@ -279,7 +283,7 @@ export async function updateShippingTracking(
     itemId
   );
 
-  if (currentStatus !== '배송준비') {
+  if (currentStatus !== '배송준비' && currentStatus !== '배송중' && currentStatus !== '배송완료') {
     throw new Error(`'${currentStatus}' 상태에서는 운송장 정보를 입력할 수 없습니다.`);
   }
 
@@ -291,6 +295,20 @@ export async function updateShippingTracking(
     .maybeSingle();
 
   if (existingError) throw existingError;
+
+  // 배송중/배송완료 건은 이미 등록된 운송장 정보를 정정하는 것 — 발송일/배송상태는 건드리지 않는다
+  if (currentStatus !== '배송준비') {
+    if (!existing) throw new Error('등록된 운송장 정보가 없습니다.');
+
+    const { error: correctionError } = await supabaseAdmin
+      .from('shippings')
+      .update({ carrier: courier, tracking_number: trackingNumber })
+      .eq('shipping_id', existing.shipping_id);
+
+    if (correctionError) throw correctionError;
+
+    return { newStatus: currentStatus };
+  }
 
   const shippingPayload = {
     carrier: courier,
@@ -331,7 +349,11 @@ export async function updateShippingTracking(
 
   if (statusUpdateError) throw statusUpdateError;
 
-  await logOrderItemStatusHistory(itemId, '배송중');
+  try {
+    await logOrderItemStatusHistory(itemId, '배송중');
+  } catch (err) {
+    console.error('order_item_status_history insert 실패', { itemId, newStatus: '배송중', err });
+  }
 
   await syncOrderStatus(orderId);
 
@@ -344,15 +366,21 @@ export async function bulkUpdateShippingStatus(
   newStatus: string
 ) {
   const results: { itemId: number; success: boolean; error?: string }[] = [];
+  const affectedOrderIds = new Set<string>();
 
   for (const itemId of itemIds) {
     try {
-      await updateShippingStatus(sellerId, itemId, newStatus);
+      const { orderId } = await updateShippingStatus(sellerId, itemId, newStatus);
+      affectedOrderIds.add(orderId);
       results.push({ itemId, success: true });
     } catch (err) {
       const message = err instanceof Error ? err.message : '상태 변경에 실패했습니다.';
       results.push({ itemId, success: false, error: message });
     }
+  }
+
+  for (const orderId of affectedOrderIds) {
+    await syncOrderStatus(orderId);
   }
 
   return results;
@@ -442,7 +470,15 @@ export async function bulkUpdateShippingTracking(
         .update({ shipping_status: '배송중' })
         .eq('item_id', item.item_id);
 
-      await logOrderItemStatusHistory(item.item_id, '배송중');
+      try {
+        await logOrderItemStatusHistory(item.item_id, '배송중');
+      } catch (err) {
+        console.error('order_item_status_history insert 실패', {
+          itemId: item.item_id,
+          newStatus: '배송중',
+          err,
+        });
+      }
     }
 
     await syncOrderStatus(orderId);

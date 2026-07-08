@@ -8,6 +8,7 @@ import type { ShippingSectionProps, ShippingTemplate } from '@/types/seller/ship
 import ShippingTemplateForm from '../Template/ShippingTemplateForm';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+import { formatWon } from '@/lib/format';
 
 export default function ShippingSection({
   templates,
@@ -62,7 +63,7 @@ export default function ShippingSection({
               <dt className="text-gray-500">배송비 유형</dt>
               <dd className="text-gray-800">{selectedTemplate.feeType}</dd>
               <dt className="text-gray-500">배송비</dt>
-              <dd className="text-gray-800">{selectedTemplate.fee.toLocaleString()}원</dd>
+              <dd className="text-gray-800">{formatWon(selectedTemplate.fee)}</dd>
               <dt className="text-gray-500">출고지</dt>
               <dd className="text-gray-800">{selectedTemplate.originAddress}</dd>
             </dl>
@@ -102,7 +103,7 @@ export default function ShippingSection({
                     )}
                   </span>
                   <span className="text-xs text-gray-500">
-                    {t.feeType} · {t.fee.toLocaleString()}원
+                    {t.feeType} · {formatWon(t.fee)}
                   </span>
                   <span className="text-xs text-gray-400">{t.originAddress}</span>
                 </button>

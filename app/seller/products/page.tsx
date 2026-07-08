@@ -4,7 +4,7 @@ import * as XLSX from 'xlsx';
 import { useRef } from 'react';
 import { useExcelExport } from '@/hooks/useExcelExport';
 import type { ProductExportRow } from '@/types/seller/product';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Upload, Download, Filter, Plus } from 'lucide-react';
@@ -13,7 +13,7 @@ import FilterTabs from '@/app/seller/components/FilterTabs';
 import Pagination from '@/components/ui/Pagination';
 import StatusCards from '@/components/ui/StatusCards';
 import { useSearchParams } from 'next/navigation';
-import { getPageNumbers } from '@/lib/utils';
+import { getPageNumbers, getTotalPages } from '@/lib/utils';
 import type {
   ProductStatus,
   Product,
@@ -243,7 +243,7 @@ export default function ProductsPage() {
     }
   };
 
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     setIsLoading(true);
     try {
       const params: Record<string, string | number> = { page, limit: LIMIT };
@@ -267,7 +267,7 @@ export default function ProductsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [page, search, status, selectedParentId, selectedCategoryId, sortBy, sortOrder]);
 
   const handleSelect = (productId: number, checked: boolean) => {
     setSelectedIds((prev) =>
@@ -379,9 +379,9 @@ export default function ProductsPage() {
 
   useEffect(() => {
     loadProducts();
-  }, [page, search, status, selectedParentId, selectedCategoryId, sortBy, sortOrder]);
+  }, [loadProducts]);
 
-  const totalPages = Math.ceil(total / LIMIT);
+  const totalPages = getTotalPages(total, LIMIT);
 
   const handleSelectParent = (parentId: number | null) => {
     setSelectedParentId(parentId);

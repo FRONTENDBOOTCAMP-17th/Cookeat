@@ -11,9 +11,15 @@ export async function GET(req: NextRequest) {
 
   const { data: profile } = await supabaseAdmin
     .from('users')
-    .select('phone, point, nickname')
+    .select('phone, point, nickname, role, user_id')
     .eq('auth_id', user.id)
     .maybeSingle()
+
+  const VALID_ROLES = ['user', 'seller', 'admin'] as const
+  const rawRole = profile?.role
+  const role = (VALID_ROLES as readonly string[]).includes(rawRole ?? '')
+    ? (rawRole as (typeof VALID_ROLES)[number])
+    : 'user'
 
   return NextResponse.json({
     complete: !!profile?.phone,
@@ -23,6 +29,8 @@ export async function GET(req: NextRequest) {
     phone: profile?.phone ?? '',
     isSocial: user.app_metadata?.provider !== 'email',
     profileImage: user.user_metadata?.custom_avatar_url ?? user.user_metadata?.avatar_url ?? null,
+    role,
+    dbUserId: profile?.user_id ?? 0,
   })
 }
 

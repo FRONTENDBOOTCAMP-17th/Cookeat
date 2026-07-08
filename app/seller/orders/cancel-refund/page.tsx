@@ -5,20 +5,13 @@ import { useExcelExport, ExportColumn } from '@/hooks/useExcelExport';
 import type { RefundExportRow } from '@/types/seller/order';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
 import RefundTable from '../../components/OrderList/RefundTable';
 import StatusCards from '@/components/ui/StatusCards';
 import DateRangeFilter from '../../components/DateRangeFilter';
 import type { OrderWithRefunds } from '@/types/seller/order';
 import type { DateRangePreset } from '@/types/seller/common';
 import { getDateRange } from '@/lib/dateRange';
+import { getTotalPages } from '@/lib/utils';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { Download } from 'lucide-react';
@@ -75,9 +68,6 @@ export default function CancelRefundPage() {
     처리완료: 0,
   });
 
-  const [rejectingRefundId, setRejectingRefundId] = useState<number | null>(null);
-  const [rejectReason, setRejectReason] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [isAllSelectedMode, setIsAllSelectedMode] = useState(false);
 
@@ -116,7 +106,7 @@ export default function CancelRefundPage() {
     run();
   }, [fetchCounts]);
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await api.get('/seller/orders/refunds', {
@@ -137,14 +127,14 @@ export default function CancelRefundPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [page, tab, search, startDate, endDate]);
 
   useEffect(() => {
     const run = () => {
       fetchOrders();
     };
     run();
-  }, [page, tab, search, startDate, endDate]);
+  }, [fetchOrders]);
 
   const handleSelect = (refundId: number, checked: boolean) => {
     setSelectedIds((prev) =>
@@ -173,93 +163,7 @@ export default function CancelRefundPage() {
     exportToExcel(params);
   };
 
-  const handleApprove = async (refundId: number) => {
-    try {
-      const res = await api.patch(`/seller/orders/refunds/${refundId}`, { action: 'approve' });
-      const resultStatus = res.data.data.status;
-      const particle = resultStatus === '환불' ? '이' : '가';
-      toast.success(`${resultStatus}${particle} 승인되었습니다.`);
-      fetchOrders();
-      fetchCounts();
-    } catch (e) {
-      const message =
-        e && typeof e === 'object' && 'response' in e
-          ? (e as { response?: { data?: { error?: string } } }).response?.data?.error
-          : undefined;
-      toast.error(message ?? '승인에 실패했습니다.');
-    }
-  };
-
-  const handleProcess = async (refundId: number) => {
-    try {
-      await api.patch(`/seller/orders/refunds/${refundId}`, { action: 'process' });
-      toast.success('환불 처리가 완료되었습니다.');
-      fetchOrders();
-      fetchCounts();
-    } catch (e) {
-      const message =
-        e && typeof e === 'object' && 'response' in e
-          ? (e as { response?: { data?: { error?: string } } }).response?.data?.error
-          : undefined;
-      toast.error(message ?? '환불 처리에 실패했습니다.');
-    }
-  };
-
-  const handleSaveTracking = async (refundId: number, courier: string, trackingNumber: string) => {
-    try {
-      await api.patch(`/seller/orders/refunds/${refundId}`, {
-        action: 'saveTracking',
-        courier,
-        trackingNumber,
-      });
-      toast.success('반송 운송장이 저장되었습니다.');
-      fetchOrders();
-    } catch (e) {
-      const message =
-        e && typeof e === 'object' && 'response' in e
-          ? (e as { response?: { data?: { error?: string } } }).response?.data?.error
-          : undefined;
-      toast.error(message ?? '저장에 실패했습니다.');
-    }
-  };
-
-  const handleRejectClick = (refundId: number) => {
-    setRejectingRefundId(refundId);
-    setRejectReason('');
-  };
-
-  const handleRejectSubmit = async () => {
-    if (!rejectingRefundId) return;
-    if (!rejectReason.trim()) {
-      toast.error('거부 사유를 입력해주세요.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const res = await api.patch(`/seller/orders/refunds/${rejectingRefundId}`, {
-        action: 'reject',
-        reason: rejectReason,
-      });
-      const resultStatus = res.data.data.status;
-      const baseStatus = resultStatus.replace('요청', '');
-      const particle = baseStatus === '환불' ? '을' : '를';
-      toast.success(`${baseStatus}${particle} 거부했습니다.`);
-      setRejectingRefundId(null);
-      fetchOrders();
-      fetchCounts();
-    } catch (e) {
-      const message =
-        e && typeof e === 'object' && 'response' in e
-          ? (e as { response?: { data?: { error?: string } } }).response?.data?.error
-          : undefined;
-      toast.error(message ?? '거부 처리에 실패했습니다.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const totalPages = Math.ceil(total / LIMIT);
+  const totalPages = getTotalPages(total, LIMIT);
 
   return (
     <div className="bg-background p-8 max-desktop:p-6 max-tablet:p-4">
@@ -335,31 +239,6 @@ export default function CancelRefundPage() {
         totalPages={totalPages}
         onPageChange={setPage}
       />
-
-      <Dialog
-        open={rejectingRefundId !== null}
-        onOpenChange={(open) => !open && setRejectingRefundId(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>환불 요청 거부</DialogTitle>
-          </DialogHeader>
-          <Textarea
-            value={rejectReason}
-            onChange={(e) => setRejectReason(e.target.value)}
-            placeholder="거부 사유를 입력해주세요"
-            rows={4}
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectingRefundId(null)}>
-              취소
-            </Button>
-            <Button onClick={handleRejectSubmit} disabled={isSubmitting}>
-              거부 처리
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

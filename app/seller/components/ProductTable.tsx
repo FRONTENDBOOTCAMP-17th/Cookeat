@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import StatusBadge from '@/app/seller/components/StatusBadge';
 import { SquarePen, Eye, Trash2, ChevronUp, ChevronDown, ChevronsUpDown, Star } from 'lucide-react';
 import Link from 'next/link';
@@ -17,6 +18,7 @@ import { toast } from 'sonner';
 import api from '@/lib/api';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useAuthStore } from '@/store/authStore';
+import { formatWon } from '@/lib/format';
 import type { ProductSortBy, ProductStatus, ProductTableProps } from '@/types/seller/product';
 
 import {
@@ -175,11 +177,9 @@ export default function ProductTable({
                     </TableCell>
                     <TableCell className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="w-10 h-10 rounded-lg object-cover"
-                        />
+                        <div className="relative w-10 h-10 rounded-lg overflow-hidden shrink-0">
+                          <Image src={product.image} alt={product.name} fill className="object-cover" />
+                        </div>
                         <span className="text-sm font-medium text-gray-800">{product.name}</span>
                       </div>
                     </TableCell>
@@ -187,7 +187,7 @@ export default function ProductTable({
                       {product.categories?.name ?? '-'}
                     </TableCell>
                     <TableCell className="text-sm text-gray-800 text-center">
-                      {product.price.toLocaleString()}원
+                      {formatWon(product.price)}
                     </TableCell>
                     <TableCell className="text-sm text-center">
                       <span

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import StatusBadge from '@/app/seller/components/StatusBadge';
@@ -51,9 +52,9 @@ export default function ReviewCard({
               <button
                 key={`${url}-${index}`}
                 onClick={() => onImageClick(url)}
-                className="w-20 h-20 max-mobile:w-16 max-mobile:h-16 rounded-lg overflow-hidden border border-border hover:opacity-80 transition-opacity"
+                className="relative w-20 h-20 max-mobile:w-16 max-mobile:h-16 rounded-lg overflow-hidden border border-border hover:opacity-80 transition-opacity"
               >
-                <img src={url} alt="리뷰 이미지" className="w-full h-full object-cover" />
+                <Image src={url} alt="리뷰 이미지" fill className="object-cover" />
               </button>
             ))}
           </div>

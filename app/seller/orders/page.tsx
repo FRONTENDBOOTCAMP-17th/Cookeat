@@ -17,6 +17,7 @@ import type {
 import { ORDER_STATUS_LABEL, PAYMENT_LABEL } from '@/types/seller/order';
 import type { DateRangePreset } from '@/types/seller/common';
 import { getDateRange } from '@/lib/dateRange';
+import { getTotalPages } from '@/lib/utils';
 import OrderSearchFilter from '../components/OrderList/OrderSearchFilter';
 import OrderTable from '../components/OrderList/OrderTable';
 import StatusCards from '@/components/ui/StatusCards';
@@ -279,7 +280,7 @@ export default function OrdersPage() {
     exportToExcel(params);
   };
 
-  const totalPages = Math.ceil(total / LIMIT);
+  const totalPages = getTotalPages(total, LIMIT);
 
   return (
     <div className="bg-background p-8 max-desktop:p-6 max-tablet:p-4">

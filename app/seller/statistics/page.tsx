@@ -64,8 +64,10 @@ export default function StatisticsPage() {
         </div>
       </div>
 
-      {isLoading || !data ? (
+      {isLoading ? (
         <p className="text-sm text-light-gray">불러오는 중...</p>
+      ) : !data ? (
+        <p className="text-sm text-red-500">통계를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
       ) : (
         <div className="flex flex-col gap-6 max-mobile:gap-4">
           <StatisticsSummaryCards summary={data.summary} />

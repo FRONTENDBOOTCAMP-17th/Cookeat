@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import DOMPurify from 'isomorphic-dompurify';
 
 interface Feature {
   title: string;
@@ -8,45 +8,23 @@ interface Feature {
 interface ProductDescriptionProps {
   title: string;
   description: string;
-  imageUrl?: string;
   features: Feature[];
 }
 
 export default function ProductDescription({
   title,
   description,
-  imageUrl,
   features,
 }: ProductDescriptionProps) {
   return (
     <div className="space-y-8 bg-card p-5 rounded-2xl">
-      {/* 대표 이미지 */}
-      {imageUrl ? (
-        <div className="relative aspect-video rounded-xl overflow-hidden bg-card-bg">
-          <Image src={imageUrl} alt="상품 설명 이미지" fill className="object-cover" />
-        </div>
-      ) : (
-        <div className="aspect-video rounded-xl bg-card-bg flex items-center justify-center">
-          <svg
-            className="w-16 h-16 text-muted"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1}
-              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01"
-            />
-          </svg>
-        </div>
-      )}
-
       {/* 설명 텍스트 */}
       <div>
-        <h2 className="text-base font-bold text-dark-text mb-2">{title}</h2>
-        <p className="text-sm text-gray-text leading-relaxed whitespace-pre-line">{description}</p>
+        <h2 className="text-base font-bold text-dark-text mb-2 text-h2 text-center">{title}</h2>
+        <div
+          className="text-sm text-gray-text leading-relaxed prose prose-sm max-w-none"
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(description) }}
+        />
       </div>
 
       {/* 특징 카드 — 번호 원형 아이콘 */}

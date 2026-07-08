@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { SettlementHeroCardProps } from '@/types/seller/settlement';
 import { CircleDollarSign } from 'lucide-react';
+import { formatWon } from '@/lib/format';
 
 export default function SettlementHeroCard({ nextSettlement }: SettlementHeroCardProps) {
   return (
@@ -16,7 +17,7 @@ export default function SettlementHeroCard({ nextSettlement }: SettlementHeroCar
             다음 정산 예정
           </div>
           <div className="text-4xl font-bold tracking-tight max-mobile:text-3xl">
-            {nextSettlement.nextSettlementAmount.toLocaleString()}원
+            {formatWon(nextSettlement.nextSettlementAmount)}
           </div>
         </div>
 
@@ -25,19 +26,19 @@ export default function SettlementHeroCard({ nextSettlement }: SettlementHeroCar
           <div className="flex flex-col gap-1.5">
             <span className="text-sm text-white/60">총 판매액</span>
             <span className="text-base font-semibold">
-              {nextSettlement.totalSalesAmount.toLocaleString()}원
+              {formatWon(nextSettlement.totalSalesAmount)}
             </span>
           </div>
           <div className="flex flex-col gap-1.5">
             <span className="text-sm text-white/60">수수료 ({nextSettlement.commissionRate}%)</span>
             <span className="text-base font-semibold text-red-300">
-              -{nextSettlement.commission.toLocaleString()}원
+              -{formatWon(nextSettlement.commission)}
             </span>
           </div>
           <div className="flex flex-col gap-1.5">
             <span className="text-sm text-white/60">물류 비용</span>
             <span className="text-base font-semibold text-red-300">
-              -{nextSettlement.shippingFee.toLocaleString()}원
+              -{formatWon(nextSettlement.shippingFee)}
             </span>
           </div>
         </div>

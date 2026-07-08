@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
+import { getTotalPages } from '@/lib/utils';
 import {
   Select,
   SelectContent,
@@ -117,7 +118,7 @@ export default function SellerInquiriesPage() {
     };
   }, [type, answered, debouncedSearch, page, refreshTrigger]);
 
-  const totalPages = Math.ceil(total / LIMIT);
+  const totalPages = getTotalPages(total, LIMIT);
 
   const statusCardData = [
     { label: '전체', count: stats.totalCount, filterValue: '전체' },

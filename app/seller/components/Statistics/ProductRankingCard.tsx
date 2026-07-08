@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { formatWon } from '@/lib/format';
 import type { ProductRankingCardProps } from '@/types/seller/statistics';
 
 export default function ProductRankingCard({ items }: ProductRankingCardProps) {
@@ -28,7 +29,7 @@ export default function ProductRankingCard({ items }: ProductRankingCardProps) {
                   <p className="text-xs text-light-gray">{item.quantity}개 판매</p>
                 </div>
                 <span className="text-sm font-semibold text-dark-text flex-shrink-0">
-                  {item.revenue.toLocaleString()}원
+                  {formatWon(item.revenue)}
                 </span>
               </div>
             ))}

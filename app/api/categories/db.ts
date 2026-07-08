@@ -1,11 +1,5 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
-interface CategoryRow {
-  category_id: number;
-  name: string;
-  parent_id: number | null;
-  sort_order: number | null;
-}
 export async function getCategories() {
   const { data: ingredientRows, error: ingredientError } = await supabaseAdmin
     .from('ingredients')

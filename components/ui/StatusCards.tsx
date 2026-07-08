@@ -24,6 +24,15 @@ const GRID_COLS_MAP: Record<number, string> = {
   7: 'grid-cols-7',
 };
 
+const MOBILE_GRID_COLS_MAP: Record<number, string> = {
+  2: 'max-mobile:grid-cols-2',
+  3: 'max-mobile:grid-cols-3',
+  4: 'max-mobile:grid-cols-2',
+  5: 'max-mobile:grid-cols-3',
+  6: 'max-mobile:grid-cols-3',
+  7: 'max-mobile:grid-cols-3',
+};
+
 export default function StatusCards<T extends string>({
   cards,
   status,
@@ -33,9 +42,10 @@ export default function StatusCards<T extends string>({
   unit = '건',
 }: StatusCardsProps<T>) {
   const gridColsClass = GRID_COLS_MAP[cols] ?? 'grid-cols-5';
+  const mobileGridColsClass = MOBILE_GRID_COLS_MAP[cols] ?? 'max-mobile:grid-cols-3';
 
   return (
-    <div className={`grid ${gridColsClass} gap-4 mb-5`}>
+    <div className={`grid ${gridColsClass} ${mobileGridColsClass} gap-4 max-mobile:gap-3 mb-5`}>
       {cards.map((item) => (
         <Card
           key={item.label}

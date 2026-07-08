@@ -21,6 +21,7 @@ import {
   ShippingInputState,
   TrackingTableProps,
 } from '@/types/seller/shipping';
+import { COURIERS, sanitizeTrackingNumber } from '@/lib/courier';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import StatusBadge from '../StatusBadge';
@@ -33,17 +34,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-
-const COURIERS: CourierCode[] = [
-  'CJ대한통운',
-  '로젠택배',
-  '한진택배',
-  '롯데택배',
-  '우체국택배',
-  'CU 편의점택배',
-  'GS25 편의점택배',
-  'ETC',
-];
 
 const EMPTY_MESSAGE: Record<'배송준비' | '배송중' | '배송완료', string> = {
   배송준비: '배송준비 중인 주문건이 없습니다.',
@@ -63,13 +53,36 @@ export default function TrackingTable({
   totalPages,
   onPageChange,
   onUpdate,
+  onCorrect,
 }: TrackingTableProps) {
   const isAdmin = useAuthStore((s) => s.user?.role === 'admin');
   const [inputs, setInputs] = useState<Record<number, ShippingInputState>>({});
   const [defaultCourier, setDefaultCourier] = useState<CourierCode | ''>('');
   const isEditable = status === '배송준비' && !isAdmin;
   const isShipping = status === '배송중';
-  const hasActionColumn = isEditable || isShipping;
+  const canCorrect = (status === '배송중' || status === '배송완료') && !isAdmin;
+  const hasActionColumn = isEditable || isShipping || canCorrect;
+
+  const isRowEditing = (itemId: number) => inputs[itemId]?.isEditing ?? false;
+
+  const handleStartEdit = (order: ShippingRow) => {
+    setInputs((prev) => ({
+      ...prev,
+      [order.itemId]: {
+        courier: order.courier,
+        trackingNumber: order.trackingNumber,
+        isEditing: true,
+      },
+    }));
+  };
+
+  const handleCancelEdit = (itemId: number) => {
+    setInputs((prev) => {
+      const next = { ...prev };
+      delete next[itemId];
+      return next;
+    });
+  };
 
   const [prevAutoFillTrigger, setPrevAutoFillTrigger] = useState({ defaultCourier, isEditable, orders });
   if (
@@ -109,23 +122,35 @@ export default function TrackingTable({
       return;
     }
 
-    onUpdate(itemId, input.courier, input.trackingNumber);
+    if (canCorrect) {
+      onCorrect(itemId, input.courier, input.trackingNumber);
+      handleCancelEdit(itemId);
+    } else {
+      onUpdate(itemId, input.courier, input.trackingNumber);
+    }
   };
 
   const renderCourierCell = (order: ShippingRow) => {
-    if (isEditable) {
+    if (isEditable || isRowEditing(order.itemId)) {
       return (
         <Select
           value={inputs[order.itemId]?.courier ?? ''}
           onValueChange={(value) =>
-            setInputs((prev) => ({
-              ...prev,
-              [order.itemId]: {
-                ...prev[order.itemId],
-                courier: value as CourierCode,
-                isAutoFilledCourier: false,
-              },
-            }))
+            setInputs((prev) => {
+              const current = prev[order.itemId];
+              return {
+                ...prev,
+                [order.itemId]: {
+                  ...current,
+                  courier: value as CourierCode,
+                  trackingNumber: sanitizeTrackingNumber(
+                    current?.trackingNumber ?? '',
+                    value as CourierCode
+                  ),
+                  isAutoFilledCourier: false,
+                },
+              };
+            })
           }
         >
           <SelectTrigger size="sm" className="w-32 mx-auto">
@@ -146,19 +171,24 @@ export default function TrackingTable({
   };
 
   const renderTrackingCell = (order: ShippingRow) => {
-    if (isEditable) {
+    if (isEditable || isRowEditing(order.itemId)) {
+      const courier = inputs[order.itemId]?.courier ?? '';
       return (
         <Input
-          type="number"
+          type="text"
+          inputMode="numeric"
           value={inputs[order.itemId]?.trackingNumber ?? ''}
           onChange={(e) =>
             setInputs((prev) => ({
               ...prev,
-              [order.itemId]: { ...prev[order.itemId], trackingNumber: e.target.value },
+              [order.itemId]: {
+                ...prev[order.itemId],
+                trackingNumber: sanitizeTrackingNumber(e.target.value, courier),
+              },
             }))
           }
           placeholder="운송장번호 입력"
-          className="w-36 mx-auto whitespace-nowrap [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          className="w-36 mx-auto whitespace-nowrap"
         />
       );
     }
@@ -489,20 +519,45 @@ export default function TrackingTable({
                     </TableCell>
                     {hasActionColumn && (
                       <TableCell className="text-center whitespace-nowrap">
-                        {isEditable && (
-                          <Button size="sm" onClick={() => handleConfirm(order.itemId)}>
-                            저장
-                          </Button>
-                        )}
-                        {isShipping && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => onStatusChange(order.itemId, '배송완료')}
-                          >
-                            배송완료 처리
-                          </Button>
-                        )}
+                        <div className="flex items-center justify-center gap-1.5">
+                          {isEditable && (
+                            <Button size="sm" onClick={() => handleConfirm(order.itemId)}>
+                              저장
+                            </Button>
+                          )}
+                          {canCorrect &&
+                            (isRowEditing(order.itemId) ? (
+                              <>
+                                <Button size="sm" onClick={() => handleConfirm(order.itemId)}>
+                                  저장
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleCancelEdit(order.itemId)}
+                                >
+                                  취소
+                                </Button>
+                              </>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleStartEdit(order)}
+                              >
+                                수정
+                              </Button>
+                            ))}
+                          {isShipping && !isRowEditing(order.itemId) && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => onStatusChange(order.itemId, '배송완료')}
+                            >
+                              배송완료 처리
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     )}
                   </TableRow>

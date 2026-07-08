@@ -1,7 +1,8 @@
 'use client';
 
 import { useRef, useState, DragEvent, ChangeEvent } from 'react';
-import { Image } from 'lucide-react';
+import Image from 'next/image';
+import { Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -34,10 +35,12 @@ function SortableImage({ image, index, onRemove, onMoveFirst }: SortableImagePro
 
   return (
     <div ref={setNodeRef} style={style} className="relative group aspect-square">
-      <img
+      <Image
         src={image.preview}
         alt={`상품 이미지 ${index + 1}`}
-        className="w-full h-full object-cover rounded-md border border-gray-200"
+        fill
+        unoptimized={image.preview.startsWith('blob:')}
+        className="object-cover rounded-md border border-gray-200"
       />
 
       {/* 대표 이미지 배지 */}
@@ -203,7 +206,7 @@ export default function ImageUploadField({ data, onChange }: ImageUploadFieldPro
                 : 'border-gray-300 hover:border-green-400 hover:bg-gray-50'
             }`}
           >
-            <Image className="text-gray-400 w-8 h-8" />
+            <ImageIcon className="text-gray-400 w-8 h-8" />
             <p className="text-sm text-gray-500">
               이미지를 드래그하거나 <span className="text-green-700 font-medium">클릭</span>하여
               업로드하세요

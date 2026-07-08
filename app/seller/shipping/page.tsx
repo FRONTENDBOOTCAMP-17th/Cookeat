@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { CourierCode, ShippingRow, ShippingStatus } from '@/types/seller/shipping';
 import { DateRangePreset } from '@/types/seller/common';
 import StatusCards from '@/components/ui/StatusCards';
+import { getTotalPages } from '@/lib/utils';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
@@ -223,11 +224,6 @@ export default function ShippingPage() {
     }
   };
 
-  const handleBulkSuccess = (processedItemIds: number[]) => {
-    setOrders((prev) => prev.filter((o) => !processedItemIds.includes(o.itemId)));
-    fetchCounts();
-  };
-
   const handleUpdate = async (
     itemId: number,
     courier: CourierCode | '',
@@ -244,6 +240,26 @@ export default function ShippingPage() {
           ? (e as { response?: { data?: { error?: string } } }).response?.data?.error
           : undefined;
       toast.error(message ?? '운송장 등록에 실패했습니다.');
+    }
+  };
+
+  const handleCorrectTracking = async (
+    itemId: number,
+    courier: CourierCode | '',
+    trackingNumber: string
+  ) => {
+    try {
+      await api.patch(`/seller/shipping/orders/${itemId}`, { courier, trackingNumber });
+      setOrders((prev) =>
+        prev.map((o) => (o.itemId === itemId ? { ...o, courier, trackingNumber } : o))
+      );
+      toast.success('운송장 정보가 수정되었습니다.');
+    } catch (e) {
+      const message =
+        e && typeof e === 'object' && 'response' in e
+          ? (e as { response?: { data?: { error?: string } } }).response?.data?.error
+          : undefined;
+      toast.error(message ?? '운송장 수정에 실패했습니다.');
     }
   };
 
@@ -275,16 +291,18 @@ export default function ShippingPage() {
         itemIds,
         status: '배송준비',
       });
-      const { successCount, failCount } = res.data.data;
+      const { successCount, failCount, results } = res.data.data;
 
       if (failCount > 0) {
-        toast.error(`${successCount}
-           처리 완료, ${failCount}건 실패했습니다.`);
+        toast.error(`${successCount}건 처리 완료, ${failCount}건 실패했습니다.`);
       } else {
         toast.success('발주확인되었습니다.');
       }
 
-      setOrders((prev) => prev.filter((o) => o.orderId !== orderId));
+      const succeededIds = results
+        .filter((r: { itemId: number; success: boolean }) => r.success)
+        .map((r: { itemId: number }) => r.itemId);
+      setOrders((prev) => prev.filter((o) => !succeededIds.includes(o.itemId)));
       fetchCounts();
     } catch (e) {
       const message =
@@ -295,24 +313,7 @@ export default function ShippingPage() {
     }
   };
 
-  const totalPages = Math.ceil(total / LIMIT);
-
-  const dateFilterProps = {
-    datePreset,
-    onDatePresetChange: handleDatePresetChange,
-    startDate,
-    endDate,
-    onStartDateChange: (v: string) => {
-      setStartDate(v);
-      setDatePreset('직접입력');
-      setPage(1);
-    },
-    onEndDateChange: (v: string) => {
-      setEndDate(v);
-      setDatePreset('직접입력');
-      setPage(1);
-    },
-  };
+  const totalPages = getTotalPages(total, LIMIT);
 
   return (
     <div className="bg-background p-8 max-tablet:p-5 max-mobile:p-4">
@@ -367,6 +368,7 @@ export default function ShippingPage() {
           orders={orders}
           total={total}
           onUpdate={handleUpdateInAllView}
+          onCorrect={handleCorrectTracking}
           onStatusChange={handleStatusChangeInAllView}
           onConfirmOrder={handleConfirmOrder}
           isLoading={isLoading}
@@ -391,6 +393,7 @@ export default function ShippingPage() {
           total={total}
           status={status as '배송준비' | '배송중' | '배송완료'}
           onUpdate={handleUpdate}
+          onCorrect={handleCorrectTracking}
           onStatusChange={handleStatusChange}
           onBulkTrackingSuccess={handleBulkTrackingSuccess}
           onBulkStatusSuccess={handleBulkSuccessByItemId}

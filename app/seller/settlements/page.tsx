@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import { getTotalPages } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
@@ -208,7 +209,7 @@ export default function SettlementsPage() {
     { label: '정산완료', count: summary.completedTotal, filterValue: '완료' },
   ];
 
-  const totalPages = Math.ceil(total / LIMIT);
+  const totalPages = getTotalPages(total, LIMIT);
 
   if (status !== prevStatus) {
     setPrevStatus(status);

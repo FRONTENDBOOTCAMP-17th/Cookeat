@@ -13,6 +13,7 @@ import {
 import Pagination from '@/components/ui/Pagination';
 import EmptyRows from '@/components/ui/EmptyRows';
 import { formatDateTime, getPageNumbers } from '@/lib/utils';
+import { formatWon } from '@/lib/format';
 import { RefundTableProps } from '@/types/seller/order';
 import StatusBadge from '../StatusBadge';
 
@@ -119,7 +120,7 @@ export default function RefundTable({
                         {item.quantity}개
                       </TableCell>
                       <TableCell className="text-center text-sm text-gray-800 whitespace-nowrap">
-                        {(item.quantity * item.unitPrice).toLocaleString()}원
+                        {formatWon(item.quantity * item.unitPrice)}
                       </TableCell>
                       <TableCell className="text-center whitespace-nowrap">
                         <StatusBadge status={order.orderStatus} />

@@ -18,6 +18,7 @@ import {
   ShippingInputState,
   AllOrdersTableProps,
 } from '@/types/seller/shipping';
+import { COURIERS, sanitizeTrackingNumber } from '@/lib/courier';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
@@ -31,21 +32,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-const COURIERS: CourierCode[] = [
-  'CJ대한통운',
-  '로젠택배',
-  '한진택배',
-  '롯데택배',
-  '우체국택배',
-  'CU 편의점택배',
-  'GS25 편의점택배',
-  'ETC',
-];
-
 export default function AllOrdersTable({
   orders,
   total,
   onUpdate,
+  onCorrect,
   onStatusChange,
   onConfirmOrder,
   isLoading,
@@ -56,7 +47,31 @@ export default function AllOrdersTable({
   const isAdmin = useAuthStore((s) => s.user?.role === 'admin');
   const [inputs, setInputs] = useState<Record<number, ShippingInputState>>({});
 
-  const handleConfirm = (itemId: number) => {
+  const isRowEditing = (itemId: number) => inputs[itemId]?.isEditing ?? false;
+  const canCorrect = (order: ShippingRow) =>
+    !isAdmin && (order.status === '배송중' || order.status === '배송완료');
+
+  const handleStartEdit = (order: ShippingRow) => {
+    setInputs((prev) => ({
+      ...prev,
+      [order.itemId]: {
+        courier: order.courier,
+        trackingNumber: order.trackingNumber,
+        isEditing: true,
+      },
+    }));
+  };
+
+  const handleCancelEdit = (itemId: number) => {
+    setInputs((prev) => {
+      const next = { ...prev };
+      delete next[itemId];
+      return next;
+    });
+  };
+
+  const handleConfirm = (order: ShippingRow) => {
+    const itemId = order.itemId;
     const input = inputs[itemId];
 
     if (!input?.courier) {
@@ -68,49 +83,69 @@ export default function AllOrdersTable({
       return;
     }
 
-    onUpdate(itemId, input.courier, input.trackingNumber);
+    if (canCorrect(order)) {
+      onCorrect(itemId, input.courier, input.trackingNumber);
+      handleCancelEdit(itemId);
+    } else {
+      onUpdate(itemId, input.courier, input.trackingNumber);
+    }
   };
 
   const renderTrackingCell = (order: ShippingRow) => {
-    if (order.status === '배송준비') {
-      if (!isAdmin) {
-        return (
-          <div className="flex items-center gap-1.5 justify-center">
-            <Select
-              value={inputs[order.itemId]?.courier ?? ''}
-              onValueChange={(value) =>
-                setInputs((prev) => ({
+    if ((order.status === '배송준비' && !isAdmin) || isRowEditing(order.itemId)) {
+      return (
+        <div className="flex items-center gap-1.5 justify-center">
+          <Select
+            value={inputs[order.itemId]?.courier ?? ''}
+            onValueChange={(value) =>
+              setInputs((prev) => {
+                const current = prev[order.itemId];
+                return {
                   ...prev,
-                  [order.itemId]: { ...prev[order.itemId], courier: value as CourierCode },
-                }))
-              }
-            >
-              <SelectTrigger size="sm" className="w-28">
-                <SelectValue placeholder="택배사" />
-              </SelectTrigger>
-              <SelectContent>
-                {COURIERS.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input
-              type="number"
-              value={inputs[order.itemId]?.trackingNumber ?? ''}
-              onChange={(e) =>
-                setInputs((prev) => ({
-                  ...prev,
-                  [order.itemId]: { ...prev[order.itemId], trackingNumber: e.target.value },
-                }))
-              }
-              placeholder="운송장번호"
-              className="w-28 whitespace-nowrap [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-          </div>
-        );
-      }
+                  [order.itemId]: {
+                    ...current,
+                    courier: value as CourierCode,
+                    trackingNumber: sanitizeTrackingNumber(
+                      current?.trackingNumber ?? '',
+                      value as CourierCode
+                    ),
+                  },
+                };
+              })
+            }
+          >
+            <SelectTrigger size="sm" className="w-28">
+              <SelectValue placeholder="택배사" />
+            </SelectTrigger>
+            <SelectContent>
+              {COURIERS.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            type="text"
+            inputMode="numeric"
+            value={inputs[order.itemId]?.trackingNumber ?? ''}
+            onChange={(e) =>
+              setInputs((prev) => ({
+                ...prev,
+                [order.itemId]: {
+                  ...prev[order.itemId],
+                  trackingNumber: sanitizeTrackingNumber(
+                    e.target.value,
+                    prev[order.itemId]?.courier ?? ''
+                  ),
+                },
+              }))
+            }
+            placeholder="운송장번호"
+            className="w-28 whitespace-nowrap"
+          />
+        </div>
+      );
     }
 
     if (order.courier && order.trackingNumber) {
@@ -126,6 +161,20 @@ export default function AllOrdersTable({
 
   const renderActionCell = (order: ShippingRow) => {
     if (isAdmin) return <span className="text-gray-400 text-sm">-</span>;
+
+    if (isRowEditing(order.itemId)) {
+      return (
+        <div className="flex items-center justify-center gap-1.5">
+          <Button size="sm" onClick={() => handleConfirm(order)}>
+            저장
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => handleCancelEdit(order.itemId)}>
+            취소
+          </Button>
+        </div>
+      );
+    }
+
     switch (order.status) {
       case '결제완료':
         return (
@@ -135,18 +184,29 @@ export default function AllOrdersTable({
         );
       case '배송준비':
         return (
-          <Button size="sm" onClick={() => handleConfirm(order.itemId)}>
+          <Button size="sm" onClick={() => handleConfirm(order)}>
             저장
           </Button>
         );
       case '배송중':
         return (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onStatusChange(order.itemId, '배송완료')}
-          >
-            배송완료 처리
+          <div className="flex items-center justify-center gap-1.5">
+            <Button size="sm" variant="outline" onClick={() => handleStartEdit(order)}>
+              수정
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onStatusChange(order.itemId, '배송완료')}
+            >
+              배송완료 처리
+            </Button>
+          </div>
+        );
+      case '배송완료':
+        return (
+          <Button size="sm" variant="outline" onClick={() => handleStartEdit(order)}>
+            수정
           </Button>
         );
       default:

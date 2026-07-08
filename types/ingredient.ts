@@ -1,15 +1,5 @@
-//import { CategoryName } from './seller/product';
-
-//export type { CategoryName };
-export type CategoryName =
-  | '채소'
-  | '과일·견과·쌀'
-  | '수산·해산물·건어물'
-  | '정육·가공육·달걀'
-  | '면·양념·오일'
-  | '유제품'
-  | '베이커리';
-
+import { CategoryName } from './seller/product';
+export type { CategoryName };
 export type IngredientCategory = CategoryName | '전체';
 
 export type SortOption = '추천순' | '신상품순' | '낮은가격순' | '높은가격순' | '별점순';
@@ -58,6 +48,15 @@ export interface ProductDetail {
   sellerId: number | null;
   seller: string;
   sellerPhone: string;
+  rating: number;
+  reviewCount: number;
+}
+
+export interface RelatedRecipe {
+  recipeId: number;
+  title: string;
+  image: string;
+  author: string;
   rating: number;
   reviewCount: number;
 }

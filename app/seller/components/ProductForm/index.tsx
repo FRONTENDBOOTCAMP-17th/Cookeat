@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import BasicInfoField from './BasicInfoField';
 import PricingField from './PricingField';
 import ImageUploadField from './ImageUploadField';
@@ -24,27 +24,35 @@ export default function ProductForm({ mode, initialData, fromPage }: ProductForm
     []
   );
 
-  const fetchShippingTemplates = async (selectDefaultIfCreate = false) => {
-    const { data } = await api.get('/seller/shipping/templates');
-    setShippingTemplates(data.data);
-    if (selectDefaultIfCreate && mode === 'create') {
-      const defaultTemplate = (data.data as ShippingTemplateOption[]).find((t) => t.isDefault);
-      if (defaultTemplate) {
-        setForm((prev) => ({ ...prev, shippingTemplateId: defaultTemplate.templateId }));
+  const fetchShippingTemplates = useCallback(
+    async (selectDefaultIfCreate = false) => {
+      const { data } = await api.get('/seller/shipping/templates');
+      setShippingTemplates(data.data);
+      if (selectDefaultIfCreate && mode === 'create') {
+        const defaultTemplate = (data.data as ShippingTemplateOption[]).find((t) => t.isDefault);
+        if (defaultTemplate) {
+          setForm((prev) => ({ ...prev, shippingTemplateId: defaultTemplate.templateId }));
+        }
       }
-    }
-  };
+    },
+    [mode]
+  );
 
-  const fetchReturnPolicyTemplates = async (selectDefaultIfCreate = false) => {
-    const { data } = await api.get('/seller/return-policy/templates');
-    setReturnPolicyTemplates(data.data);
-    if (selectDefaultIfCreate && mode === 'create') {
-      const defaultTemplate = (data.data as ReturnPolicyTemplateOption[]).find((t) => t.isDefault);
-      if (defaultTemplate) {
-        setForm((prev) => ({ ...prev, returnPolicyTemplateId: defaultTemplate.templateId }));
+  const fetchReturnPolicyTemplates = useCallback(
+    async (selectDefaultIfCreate = false) => {
+      const { data } = await api.get('/seller/return-policy/templates');
+      setReturnPolicyTemplates(data.data);
+      if (selectDefaultIfCreate && mode === 'create') {
+        const defaultTemplate = (data.data as ReturnPolicyTemplateOption[]).find(
+          (t) => t.isDefault
+        );
+        if (defaultTemplate) {
+          setForm((prev) => ({ ...prev, returnPolicyTemplateId: defaultTemplate.templateId }));
+        }
       }
-    }
-  };
+    },
+    [mode]
+  );
 
   useEffect(() => {
     const run = () => {
@@ -53,7 +61,7 @@ export default function ProductForm({ mode, initialData, fromPage }: ProductForm
       fetchReturnPolicyTemplates(true);
     };
     run();
-  }, [mode]);
+  }, [mode, fetchShippingTemplates, fetchReturnPolicyTemplates]);
 
   const handleChange = <S extends 'basicInfo' | 'pricingInfo', K extends keyof ProductFormData[S]>(
     section: S,

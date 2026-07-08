@@ -14,14 +14,14 @@ export default function SellerInfoPage() {
   const isAdmin = useAuthStore((s) => s.user?.role === 'admin');
   const [localData, setLocalData] = useState<SellerApplication | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [savedData, setSavedData] = useState<SellerApplication | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
-      setLoading(true);
+      setIsLoading(true);
       try {
         const { data } = await api.get('/seller/me');
         if (!cancelled) {
@@ -34,7 +34,7 @@ export default function SellerInfoPage() {
           toast.error(msg, { id: msg });
         }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     }
 
@@ -74,7 +74,7 @@ export default function SellerInfoPage() {
     setIsEditing(false);
   };
 
-  if (loading) {
+  if (isLoading) {
     return <div className="p-8 text-center text-gray-400">불러오는 중...</div>;
   }
 

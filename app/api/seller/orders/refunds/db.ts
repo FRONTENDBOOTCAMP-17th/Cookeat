@@ -303,7 +303,7 @@ export async function approveRefund(
 
     await logOrderItemStatusHistory(refund.item_id, approvedStatus);
     if (isCancel) {
-      await restoreOrderBenefitsForItem(orderItem.order_id, refund.item_id);
+      await restoreOrderBenefitsForItem(orderItem.order_id);
     }
   } catch (err) {
     if (pgCancelExecuted) {
@@ -355,8 +355,8 @@ export async function updateReturnTracking(
   if (orderItem.seller_id !== sellerId) {
     throw new Error('환불 요청을 찾을 수 없습니다.');
   }
-  if (refund.status !== '환불진행중') {
-    throw new Error('환불진행중 상태에서만 반송 운송장을 입력할 수 있습니다.');
+  if (refund.status !== '환불진행중' && refund.status !== '환불') {
+    throw new Error('환불진행중 또는 환불완료 상태에서만 반송 운송장을 입력할 수 있습니다.');
   }
 
   const { error: updateError } = await supabaseAdmin
@@ -403,7 +403,7 @@ async function syncOrderStatusIfFullyClosed(orderId: string): Promise<boolean> {
   return allClosed;
 }
 
-async function restoreOrderBenefitsForItem(orderId: string, itemId: number) {
+async function restoreOrderBenefitsForItem(orderId: string) {
   const { data: order, error: orderError } = await supabaseAdmin
     .from('orders')
     .select('used_point, refunded_point, user_coupon_id, user_id')
@@ -582,7 +582,7 @@ export async function processRefund(sellerId: number, refundId: number) {
     if (shippingStatusError) throw shippingStatusError;
 
     await logOrderItemStatusHistory(refund.item_id, '환불');
-    await restoreOrderBenefitsForItem(orderItem.order_id, refund.item_id);
+    await restoreOrderBenefitsForItem(orderItem.order_id);
   } catch (err) {
     if (pgCancelExecuted) {
       console.error(

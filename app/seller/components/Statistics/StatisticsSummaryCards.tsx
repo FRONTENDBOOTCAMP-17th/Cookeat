@@ -1,11 +1,12 @@
 import { Card, CardContent } from '@/components/ui/card';
+import { formatWon } from '@/lib/format';
 import type { StatisticsSummaryCardsProps } from '@/types/seller/statistics';
 
 export default function StatisticsSummaryCards({ summary }: StatisticsSummaryCardsProps) {
   const cards = [
-    { label: '총 매출', value: `${summary.totalRevenue.toLocaleString()}원` },
+    { label: '총 매출', value: formatWon(summary.totalRevenue) },
     { label: '총 판매수량', value: `${summary.totalQuantity.toLocaleString()}개` },
-    { label: '평균 주문금액', value: `${summary.averageOrderValue.toLocaleString()}원` },
+    { label: '평균 주문금액', value: formatWon(summary.averageOrderValue) },
     { label: '판매된 상품 종류', value: `${summary.soldProductCount}종` },
   ];
 

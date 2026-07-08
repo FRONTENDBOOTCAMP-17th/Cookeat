@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState, DragEvent, ChangeEvent } from 'react';
+import Image from 'next/image';
 import { Image as ImageIcon, X } from 'lucide-react';
 
 const MAX_SIZE_MB = 5;
@@ -49,10 +50,12 @@ export default function ThumbnailUploadField({ preview, onChange }: ThumbnailUpl
       </label>
       {preview ? (
         <div className="relative w-32 h-32">
-          <img
+          <Image
             src={preview}
             alt="대표 이미지"
-            className="w-full h-full object-cover rounded-lg border border-border"
+            fill
+            unoptimized={preview.startsWith('blob:')}
+            className="object-cover rounded-lg border border-border"
           />
           <button
             type="button"

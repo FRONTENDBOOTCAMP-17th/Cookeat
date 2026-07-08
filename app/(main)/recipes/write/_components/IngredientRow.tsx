@@ -84,10 +84,10 @@ export default function IngredientRow({
           </SelectContent>
         </Select>
 
-        <div className="flex-1 relative">
+        <div className="flex-1 relative min-w-0">
           {item.selectedProduct ? (
             <div className="flex items-center justify-between gap-2 h-9 px-3 rounded-lg border border-primary bg-primary/5">
-              <span className="text-sm text-dark-text truncate">
+              <span className="text-sm text-dark-text truncate min-w-0">
                 {item.selectedProduct.name} · {item.selectedProduct.price.toLocaleString()}원
               </span>
               <button
@@ -119,7 +119,7 @@ export default function IngredientRow({
                       onMouseDown={() => handleSelectProduct(product)}
                       className="flex items-center justify-between w-full px-3 py-2 text-sm text-left hover:bg-card-bg"
                     >
-                      <span className="truncate">{product.name}</span>
+                      <span className="truncate min-w-0">{product.name}</span>
                       <span className="text-xs text-gray-text shrink-0 ml-2">
                         {product.price.toLocaleString()}원
                       </span>
@@ -137,15 +137,21 @@ export default function IngredientRow({
           value={item.amount}
           onChange={(e) => onChange(item.id, { amount: e.target.value })}
           placeholder="수량"
-          className="w-20"
+          className="w-20 shrink-0"
         />
         <Input
           value={item.unit}
           onChange={(e) => onChange(item.id, { unit: e.target.value })}
           placeholder="단위"
-          className="w-20"
+          className="w-20 shrink-0"
         />
-        <Button type="button" variant="ghost" size="icon" onClick={() => onRemove(item.id)}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="shrink-0"
+          onClick={() => onRemove(item.id)}
+        >
           <Trash2 className="w-4 h-4 text-gray-text" />
         </Button>
       </div>

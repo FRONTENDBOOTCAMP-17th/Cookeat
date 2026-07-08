@@ -8,6 +8,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from '@/components/ui/chart';
+import { formatWon } from '@/lib/format';
 import type { RevenueTrendChartProps } from '@/types/seller/statistics';
 
 const chartConfig = {
@@ -52,7 +53,7 @@ export default function RevenueTrendChart({ data }: RevenueTrendChartProps) {
                   labelFormatter={(_, payload) =>
                     formatDateLabel(payload?.[0]?.payload?.date ?? '')
                   }
-                  formatter={(value) => `${Number(value).toLocaleString()}원`}
+                  formatter={(value) => formatWon(Number(value))}
                 />
               }
             />
